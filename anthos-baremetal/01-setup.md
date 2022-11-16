@@ -327,6 +327,7 @@ export GOOGLE_APPLICATION_CREDENTIALS={{sa}}-creds.json
 
 キーを生成します。
 
+```bash
 cd ${HOME}
 gcloud iam service-accounts keys create "${GOOGLE_APPLICATION_CREDENTIALS}" --iam-account={{sa}}@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com
 ```
