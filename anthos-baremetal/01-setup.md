@@ -7,7 +7,7 @@
 <walkthrough-watcher-constant key="subnet-range" value="10.128.0.0/16"></walkthrough-watcher-constant>
 <walkthrough-watcher-constant key="sa" value="sa-baremetal"></walkthrough-watcher-constant>
 <walkthrough-watcher-constant key="cluster" value="baremetal-trial"></walkthrough-watcher-constant>
-<walkthrough-watcher-constant key="anthos-ver" value="1.10.0"></walkthrough-watcher-constant>
+<walkthrough-watcher-constant key="anthos-ver" value="1.13.1"></walkthrough-watcher-constant>
 <walkthrough-watcher-constant key="vm-workst" value="workstation"></walkthrough-watcher-constant>
 <walkthrough-watcher-constant key="vm-admin" value="anthos-admin"></walkthrough-watcher-constant>
 <walkthrough-watcher-constant key="vm-worker" value="anthos-worker"></walkthrough-watcher-constant>
