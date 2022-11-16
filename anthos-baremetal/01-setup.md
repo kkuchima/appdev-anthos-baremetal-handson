@@ -321,13 +321,12 @@ Anthos クラスタと Google Cloud と通信するためのキーの名前を�
 
 ```bash
 export ANTHOS_CLUSTER={{cluster}}
-export GOOGLE_CLOUD_PROJECT={{project-id}}
+export GOOGLE_CLOUD_PROJECT=$(gcloud config list --format "value(core.project)")
 export GOOGLE_APPLICATION_CREDENTIALS={{sa}}-creds.json
 ```
 
 キーを生成します。
 
-```bash
 cd ${HOME}
 gcloud iam service-accounts keys create "${GOOGLE_APPLICATION_CREDENTIALS}" --iam-account={{sa}}@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com
 ```
@@ -498,7 +497,7 @@ curl -IXGET $(kubectl get svc -l app=web -o jsonpath="{.items[0].status.loadBala
 
 これは Google Cloud 以外で構築された Anthos クラスタの場合、実際のワークロードは追加で権限を付与しない限りコンソールから値を参照できない仕組みとなっているためです。具体的な手順は [こちら](https://cloud.google.com/anthos/multicluster-management/console/logging-in?hl=ja) にもありますが、以下それに従い進めます。
 
-## クラウド ユーザへのアクセス許可: 1. 権限借用ポリシーの設定
+## クラウド ユーザへのアクセス許可: 1. ユーザへの RBAC 設定
 
 クラウドにログインしているユーザーのメールアドレスを指定し
 
@@ -506,63 +505,22 @@ curl -IXGET $(kubectl get svc -l app=web -o jsonpath="{.items[0].status.loadBala
 USER_ACCOUNT=
 ```
 
-connect-agent が内部的に利用しているサービス アカウントへユーザに成り代わる権限を付与します。
-
-```text
-cat << EOF > impersonate.yaml
-kind: ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: gateway-impersonate
-rules:
-- apiGroups: [""]
-  resourceNames:
-  - ${USER_ACCOUNT}
-  resources:
-  - users
-  verbs:
-  - impersonate
----
-kind: ClusterRoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: gateway-impersonate
-roleRef:
-  kind: ClusterRole
-  name: gateway-impersonate
-  apiGroup: rbac.authorization.k8s.io
-subjects:
-- kind: ServiceAccount
-  name: connect-agent-sa
-  namespace: gke-connect
-EOF
-kubectl apply -f impersonate.yaml
-```
-
-## クラウド ユーザへのアクセス許可: 2. ユーザへの RBAC 設定
-
 ここでは例として cluster-admin ロールを付与しますが、実運用においては各ユーザーに対して適切な権限を設定してください。
 
 ```text
-cat << EOF > admin-permission.yaml
-kind: ClusterRoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: gateway-cluster-admin
-subjects:
-- kind: User
-  name: ${USER_ACCOUNT}
-roleRef:
-  kind: ClusterRole
-  name: cluster-admin
-  apiGroup: rbac.authorization.k8s.io
-EOF
-kubectl apply -f admin-permission.yaml
+gcloud container fleet memberships generate-gateway-rbac  \
+    --membership=${ANTHOS_CLUSTER} \
+    --role=clusterrole/cluster-admin \
+    --users=${USER_ACCOUNT} \
+    --project=${GOOGLE_CLOUD_PROJECT} \
+    --kubeconfig=${KUBECONFIG} \
+    --context=${ANTHOS_CLUSTER}-admin@${ANTHOS_CLUSTER} \
+    --apply
 ```
 
-## クラウド ユーザへのアクセス許可: 3. **クラスタへのログイン**
+## クラウド ユーザへのアクセス許可: 2. **クラスタへのログイン**
 
-1. Cloud コンソールにもどり、登録済みクラスタの横にある `ログイン` ボタンをクリック
+1. Cloud コンソールにもどり、対象クラスタ右端にある三点リーダーを選択し`ログイン` ボタンをクリック
 2. `Google ID を使用してログインします` が選択されていることを確認し、`ログイン` をクリック
 3. クラスタ名の左側のアイコンが緑色になり `ワークロード` などが参照できるようになります
 
