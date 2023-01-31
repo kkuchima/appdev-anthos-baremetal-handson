@@ -1,17 +1,5 @@
 # Anthos clusters on Bare Metal の起動
 
-<walkthrough-watcher-constant key="region" value="asia-northeast1"></walkthrough-watcher-constant>
-<walkthrough-watcher-constant key="zone" value="asia-northeast1-c"></walkthrough-watcher-constant>
-<walkthrough-watcher-constant key="vpc" value="baremetal"></walkthrough-watcher-constant>
-<walkthrough-watcher-constant key="subnet" value="baremetal"></walkthrough-watcher-constant>
-<walkthrough-watcher-constant key="subnet-range" value="10.128.0.0/16"></walkthrough-watcher-constant>
-<walkthrough-watcher-constant key="sa" value="sa-baremetal"></walkthrough-watcher-constant>
-<walkthrough-watcher-constant key="cluster" value="baremetal-trial"></walkthrough-watcher-constant>
-<walkthrough-watcher-constant key="anthos-ver" value="1.13.1"></walkthrough-watcher-constant>
-<walkthrough-watcher-constant key="vm-workst" value="workstation"></walkthrough-watcher-constant>
-<walkthrough-watcher-constant key="vm-admin" value="anthos-admin"></walkthrough-watcher-constant>
-<walkthrough-watcher-constant key="vm-worker" value="anthos-worker"></walkthrough-watcher-constant>
-
 ## 始めましょう
 
 [Anthos clusters on Bare Metal](https://cloud.google.com/anthos/clusters/docs/bare-metal?hl=ja) を Google Compute Engine 上に構築する手順です。
@@ -93,18 +81,18 @@ gcloud services enable anthos.googleapis.com anthosgke.googleapis.com cloudresou
 
 ### **デフォルト リージョンの設定**
 
-リソースを操作するデフォルトのリージョンとして、{{region}} を指定します。
+リソースを操作するデフォルトのリージョンとして、`asia-northeast1` を指定します。
 
 ```bash
-gcloud config set compute/region {{region}}
+gcloud config set compute/region asia-northeast1
 ```
 
 ### **デフォルト ゾーンの設定**
 
-リソースを操作するデフォルトのゾーンとして、{{zone}} を指定します。
+リソースを操作するデフォルトのゾーンとして、asia-northeast1-c を指定します。
 
 ```bash
-gcloud config set compute/zone {{zone}}
+gcloud config set compute/zone asia-northeast1-c
 ```
 
 <walkthrough-footnote>必要な機能が使えるようになりました。次にワークショップ環境を確認します</walkthrough-footnote>
@@ -114,7 +102,7 @@ gcloud config set compute/zone {{zone}}
 オンプレミス（想定の）環境へ Anthos をインストールしたり、Google Cloud と通信したりするための [サービス アカウント](https://cloud.google.com/iam/docs/service-accounts?hl=ja) を用意します。今回はハンズオンなのでひとつのサービス アカウントで進めますが、実際には役割ごとに用意し、[IAM の安全な使用](https://cloud.google.com/iam/docs/using-iam-securely?hl=ja) に従った運用が可能です。
 
 ```bash
-gcloud iam service-accounts create {{sa}}
+gcloud iam service-accounts create sa-baremetal
 ```
 
 ### **権限の付与**
@@ -122,13 +110,13 @@ gcloud iam service-accounts create {{sa}}
 サービス アカウントを利用し、オンプレミス（想定の）環境から Google Cloud へ接続したりメトリクスを送信したりするための権限を付与します。
 
 ```bash
-gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} --member="serviceAccount:{{sa}}@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com" --role="roles/gkehub.connect"
-gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} --member="serviceAccount:{{sa}}@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com" --role="roles/gkehub.admin"
-gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} --member="serviceAccount:{{sa}}@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com" --role="roles/logging.logWriter"
-gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} --member="serviceAccount:{{sa}}@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com" --role="roles/monitoring.metricWriter"
-gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} --member="serviceAccount:{{sa}}@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com" --role="roles/monitoring.dashboardEditor"
-gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} --member="serviceAccount:{{sa}}@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com" --role="roles/stackdriver.resourceMetadata.writer"
-gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} --member="serviceAccount:{{sa}}@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com" --role="roles/opsconfigmonitoring.resourceMetadata.writer"
+gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} --member="serviceAccount:sa-baremetal@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com" --role="roles/gkehub.connect"
+gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} --member="serviceAccount:sa-baremetal@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com" --role="roles/gkehub.admin"
+gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} --member="serviceAccount:sa-baremetal@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com" --role="roles/logging.logWriter"
+gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} --member="serviceAccount:sa-baremetal@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com" --role="roles/monitoring.metricWriter"
+gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} --member="serviceAccount:sa-baremetal@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com" --role="roles/monitoring.dashboardEditor"
+gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} --member="serviceAccount:sa-baremetal@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com" --role="roles/stackdriver.resourceMetadata.writer"
+gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} --member="serviceAccount:sa-baremetal@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com" --role="roles/opsconfigmonitoring.resourceMetadata.writer"
 ```
 
 ## モニタリング ダッシュボードの有効化
@@ -146,8 +134,8 @@ Anthos clusters on Bare Metal はクラスタ作成時、自動的に [Cloud Ope
 ### **VPC とサブネットの作成**
 
 ```bash
-gcloud compute networks create {{vpc}} --subnet-mode=custom
-gcloud compute networks subnets create {{subnet}} --region={{region}} --range={{subnet-range}} --network={{vpc}}
+gcloud compute networks create baremetal --subnet-mode=custom
+gcloud compute networks subnets create baremetal --region=asia-northeast1 --range=10.128.0.0/16 --network=baremetal
 ```
 
 ### **ファイアウォールの設定**
@@ -155,11 +143,11 @@ gcloud compute networks subnets create {{subnet}} --region={{region}} --range={{
 [Identity-Aware Proxy](https://cloud.google.com/iap?hl=ja) からの SSH、内部ネットワークから全通信を許可します。
 
 ```bash
-gcloud compute firewall-rules create allow-from-iap --network={{vpc}} --direction=INGRESS --priority=1000 --action=ALLOW --rules=tcp:22,icmp --source-ranges=35.235.240.0/20
+gcloud compute firewall-rules create allow-from-iap --network=baremetal --direction=INGRESS --priority=1000 --action=ALLOW --rules=tcp:22,icmp --source-ranges=35.235.240.0/20
 ```
 
 ```bash
-gcloud compute firewall-rules create allow-from-internal --network={{vpc}} --direction=INGRESS --priority=1000 --action=ALLOW --rules=tcp:0-65535,udp:0-65535,icmp --source-ranges=10.0.0.0/8
+gcloud compute firewall-rules create allow-from-internal --network=baremetal --direction=INGRESS --priority=1000 --action=ALLOW --rules=tcp:0-65535,udp:0-65535,icmp --source-ranges=10.0.0.0/8
 ```
 
 ## 仮想マシンの起動
@@ -173,25 +161,25 @@ gcloud compute firewall-rules create allow-from-internal --network={{vpc}} --dir
 の VM 3 台を起動します。
 
 ```text
-gcloud compute instances create {{vm-workst}} \
-    --zone {{zone}} --machine-type "n2-standard-2" \
+gcloud compute instances create workstation \
+    --zone asia-northeast1-c --machine-type "n2-standard-2" \
     --image-family=ubuntu-2004-lts --image-project=ubuntu-os-cloud \
     --boot-disk-size 100G --boot-disk-type pd-standard \
-    --network {{vpc}} --subnet {{subnet}} --can-ip-forward \
+    --network baremetal --subnet baremetal --can-ip-forward \
     --scopes cloud-platform --metadata=enable-oslogin=FALSE \
     --async
-gcloud compute instances create {{vm-admin}} \
-    --zone {{zone}} --machine-type "n2-standard-4" \
+gcloud compute instances create anthos-admin \
+    --zone asia-northeast1-c --machine-type "n2-standard-4" \
     --image-family=ubuntu-2004-lts --image-project=ubuntu-os-cloud \
     --boot-disk-size 300G --boot-disk-type pd-standard \
-    --network {{vpc}} --subnet {{subnet}} --can-ip-forward \
+    --network baremetal --subnet baremetal --can-ip-forward \
     --scopes cloud-platform --metadata=enable-oslogin=FALSE \
     --async
-gcloud compute instances create {{vm-worker}} \
-    --zone {{zone}} --machine-type "n2-standard-2" \
+gcloud compute instances create anthos-worker \
+    --zone asia-northeast1-c --machine-type "n2-standard-2" \
     --image-family=ubuntu-2004-lts --image-project=ubuntu-os-cloud \
     --boot-disk-size 200G --boot-disk-type pd-standard \
-    --network {{vpc}} --subnet {{subnet}} --can-ip-forward \
+    --network baremetal --subnet baremetal --can-ip-forward \
     --scopes cloud-platform --metadata=enable-oslogin=FALSE
 ```
 
@@ -208,7 +196,7 @@ gcloud compute instances create {{vm-worker}} \
 以下のコマンドで SSH ができる状態になるまで待機します。
 
 ```text
-declare -a VMs=("{{vm-workst}}" "{{vm-admin}}" "{{vm-worker}}")
+declare -a VMs=("workstation" "anthos-admin" "anthos-worker")
 for vm in "${VMs[@]}"; do
     while ! gcloud compute ssh ${vm} --tunnel-through-iap --command "echo Hi from ${vm}" --quiet; do
         echo "Trying to SSH into ${vm} failed. Sleeping for 5 seconds."
@@ -220,9 +208,9 @@ done
 プライベート IP アドレスの一覧を取得します。
 
 ```bash
-ip1=$(gcloud compute instances describe {{vm-workst}} --format='get(networkInterfaces[0].networkIP)')
-ip2=$(gcloud compute instances describe {{vm-admin}} --format='get(networkInterfaces[0].networkIP)')
-ip3=$(gcloud compute instances describe {{vm-worker}} --format='get(networkInterfaces[0].networkIP)')
+ip1=$(gcloud compute instances describe workstation --format='get(networkInterfaces[0].networkIP)')
+ip2=$(gcloud compute instances describe anthos-admin --format='get(networkInterfaces[0].networkIP)')
+ip3=$(gcloud compute instances describe anthos-worker --format='get(networkInterfaces[0].networkIP)')
 declare -a IPs=("${ip1}" "${ip2}" "${ip3}")
 echo ${IPs[@]}
 ```
@@ -263,7 +251,7 @@ done
 管理ワークステーションに SSH で入ります。
 
 ```bash
-gcloud compute ssh {{vm-workst}} --tunnel-through-iap
+gcloud compute ssh workstation --tunnel-through-iap
 ```
 
 [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl)、bmctl、[docker](https://www.docker.com/) をインストールします。
@@ -277,7 +265,7 @@ kubectl version --client=true
 
 ```bash
 mkdir baremetal && cd baremetal
-gsutil cp gs://anthos-baremetal-release/bmctl/{{anthos-ver}}/linux-amd64/bmctl .
+gsutil cp gs://anthos-baremetal-release/bmctl/1.13.1/linux-amd64/bmctl .
 chmod a+x bmctl
 sudo mv bmctl /usr/local/sbin/
 bmctl version
@@ -301,8 +289,8 @@ sudo su -
 ```bash
 ssh-keygen -t rsa -N "" -f /root/.ssh/id_rsa
 sed 's/ssh-rsa/root:ssh-rsa/' /root/.ssh/id_rsa.pub > ssh-metadata
-gcloud compute instances add-metadata {{vm-admin}} --zone {{zone}} --metadata-from-file ssh-keys=ssh-metadata
-gcloud compute instances add-metadata {{vm-worker}} --zone {{zone}} --metadata-from-file ssh-keys=ssh-metadata
+gcloud compute instances add-metadata anthos-admin --zone asia-northeast1-c --metadata-from-file ssh-keys=ssh-metadata
+gcloud compute instances add-metadata anthos-worker --zone asia-northeast1-c --metadata-from-file ssh-keys=ssh-metadata
 exit
 ```
 
@@ -320,29 +308,29 @@ sudo ssh -o IdentitiesOnly=yes -o StrictHostKeyChecking=no 10.200.0.4 hostname
 Anthos クラスタと Google Cloud と通信するためのキーの名前を決め、
 
 ```bash
-export ANTHOS_CLUSTER={{cluster}}
+export ANTHOS_CLUSTER=baremetal-trial
 export GOOGLE_CLOUD_PROJECT=$(gcloud config list --format "value(core.project)")
-export GOOGLE_APPLICATION_CREDENTIALS={{sa}}-creds.json
+export GOOGLE_APPLICATION_CREDENTIALS=sa-baremetal-creds.json
 ```
 
 キーを生成します。
 
 ```bash
 cd ${HOME}
-gcloud iam service-accounts keys create "${GOOGLE_APPLICATION_CREDENTIALS}" --iam-account={{sa}}@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com
+gcloud iam service-accounts keys create "${GOOGLE_APPLICATION_CREDENTIALS}" --iam-account=sa-baremetal@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com
 ```
 
 Anthos clusters on Bare Metal の設定雛形を出力し、中身を眺めてみましょう。
 
 ```bash
 bmctl create config -c "${ANTHOS_CLUSTER}"
-cat bmctl-workspace/{{cluster}}/{{cluster}}.yaml
+cat bmctl-workspace/baremetal-trial/baremetal-trial.yaml
 ```
 
-`{{cluster}}.yaml` を以下の通りに書き換えます。
+`baremetal-trial.yaml` を以下の通りに書き換えます。
 
 ```text
-cat << EOF >bmctl-workspace/{{cluster}}/{{cluster}}.yaml
+cat << EOF >bmctl-workspace/baremetal-trial/baremetal-trial.yaml
 gcrKeyPath: ${GOOGLE_APPLICATION_CREDENTIALS}
 sshPrivateKeyPath: /root/.ssh/id_rsa
 gkeConnectAgentServiceAccountKeyPath: ${GOOGLE_APPLICATION_CREDENTIALS}
@@ -362,7 +350,7 @@ metadata:
 spec:
   type: standalone
   profile: edge
-  anthosBareMetalVersion: {{anthos-ver}}
+  anthosBareMetalVersion: 1.13.1
   gkeConnect:
     projectID: ${GOOGLE_CLOUD_PROJECT}
   controlPlane:
@@ -389,7 +377,7 @@ spec:
       - 10.200.0.50-10.200.0.70
   clusterOperations:
     projectID: ${GOOGLE_CLOUD_PROJECT}
-    location: {{region}}
+    location: asia-northeast1
     enableApplication: true
     disableCloudAuditLogging: false
   storage:
@@ -436,17 +424,17 @@ Cloud Shell の環境変数などを再設定しつつ、ワークステーシ�
 ```bash
 export GOOGLE_CLOUD_PROJECT="{{project-id}}"
 gcloud config set project "${GOOGLE_CLOUD_PROJECT}"
-gcloud config set compute/region {{region}}
-gcloud config set compute/zone {{zone}}
-gcloud compute ssh {{vm-workst}} --tunnel-through-iap
+gcloud config set compute/region asia-northeast1
+gcloud config set compute/zone asia-northeast1-c
+gcloud compute ssh workstation --tunnel-through-iap
 ```
 
 ワークステーション上の環境変数も再設定しましょう。
 
 ```bash
-export ANTHOS_CLUSTER={{cluster}}
+export ANTHOS_CLUSTER=baremetal-trial
 export GOOGLE_CLOUD_PROJECT={{project-id}}
-export GOOGLE_APPLICATION_CREDENTIALS={{sa}}-creds.json
+export GOOGLE_APPLICATION_CREDENTIALS=sa-baremetal-creds.json
 ```
 
 ## クラスタの確認
@@ -552,7 +540,7 @@ gcloud container fleet memberships generate-gateway-rbac  \
 以下をクエリとして指定し `Run query` をクリックしてみましょう。
 
 ```text
-resource.type="k8s_container" resource.labels.cluster_name="{{cluster}}" resource.labels.namespace_name="default" resource.labels.container_name="nginx"
+resource.type="k8s_container" resource.labels.cluster_name="baremetal-trial" resource.labels.namespace_name="default" resource.labels.container_name="nginx"
 ```
 
 ## これで終わりです
